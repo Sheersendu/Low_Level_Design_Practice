@@ -1,6 +1,7 @@
 ﻿using Design_Patterns.Factory;
 using Design_Patterns.Strategy;
 using Design_Patterns.Observer;
+using Design_Patterns.Singleton;
 
 // Strategy Pattern Example
 /*
@@ -27,7 +28,39 @@ publisher.NotifySubscribers("Price drop on existing products!");
 
 // Factory Pattern Example
 
+/*
 IVehicle vehicle1 = VehicleFactory.GetVehicle("Car");
 vehicle1.Drive();
 IVehicle vehicle2 = VehicleFactory.GetVehicle("Bike");
 vehicle2.Drive();
+*/
+
+// Singleton Pattern Example
+int threadCount = 5;
+Thread[] threads = new Thread[threadCount];
+for (int index = 0; index < threadCount; index++)
+{
+	threads[index] = new Thread(() =>
+	{
+		DbConnection instance = DbConnection.GetInstance();
+	});
+	threads[index].Start();
+}
+
+foreach (var thread in threads)
+{
+	thread.Join();
+}
+
+Console.WriteLine($"DbConnection constructor called: {DbConnection.ConstructorCallCount} time(s)");
+
+
+
+
+
+
+
+
+
+
+
