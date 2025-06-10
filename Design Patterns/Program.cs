@@ -1,4 +1,5 @@
-﻿using Design_Patterns.Strategy;
+﻿using Design_Patterns.Factory;
+using Design_Patterns.Strategy;
 using Design_Patterns.Observer;
 
 // Strategy Pattern Example
@@ -13,6 +14,7 @@ paymentService.Pay(50.00m);
 
 // Observer Pattern Example
 
+/*
 Publisher publisher = new();
 ISubscriber emailSubscriber = new EmailSubscriber();
 publisher.AddSubscriber(emailSubscriber);
@@ -21,3 +23,11 @@ publisher.AddSubscriber(smsSubscriber);
 publisher.NotifySubscribers("New product launch!");
 publisher.RemoveSubscriber(emailSubscriber);
 publisher.NotifySubscribers("Price drop on existing products!");
+*/
+
+// Factory Pattern Example
+
+IVehicle vehicle1 = VehicleFactory.GetVehicle("Car");
+vehicle1.Drive();
+IVehicle vehicle2 = VehicleFactory.GetVehicle("Bike");
+vehicle2.Drive();
