@@ -1,4 +1,5 @@
-﻿using Design_Patterns.Factory;
+﻿using Design_Patterns.Builder;
+using Design_Patterns.Factory;
 using Design_Patterns.Strategy;
 using Design_Patterns.Observer;
 using Design_Patterns.Singleton;
@@ -36,6 +37,8 @@ vehicle2.Drive();
 */
 
 // Singleton Pattern Example
+
+/*
 int threadCount = 5;
 Thread[] threads = new Thread[threadCount];
 for (int index = 0; index < threadCount; index++)
@@ -53,8 +56,17 @@ foreach (var thread in threads)
 }
 
 Console.WriteLine($"DbConnection constructor called: {DbConnection.ConstructorCallCount} time(s)");
+*/
 
+// Builder Pattern Example
 
+Student student = new Student.StudentBuilder()
+	.setName("Rudra")
+	.setEmail("Rudra@Roop.com")
+	.setPhoneNumber("86786905431")
+	.build();
+
+student.getDetails();
 
 
 
