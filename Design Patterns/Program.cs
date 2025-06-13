@@ -1,4 +1,5 @@
 ﻿using Design_Patterns.Builder;
+using Design_Patterns.Decorator;
 using Design_Patterns.Factory;
 using Design_Patterns.Strategy;
 using Design_Patterns.Observer;
@@ -60,6 +61,7 @@ Console.WriteLine($"DbConnection constructor called: {DbConnection.ConstructorCa
 
 // Builder Pattern Example
 
+/*
 Student student = new Student.StudentBuilder()
 	.setName("Rudra")
 	.setEmail("Rudra@Roop.com")
@@ -67,7 +69,18 @@ Student student = new Student.StudentBuilder()
 	.build();
 
 student.getDetails();
+*/
 
+// Decorator Pattern Example
+
+// Order 1: Black coffee with WhippedCream
+
+Coffee order_1 = new WhippedCreamAddOn(new BlackCoffee());
+Console.WriteLine(order_1.getPrice());
+
+// Order 2: Expresso with java and chocochip
+Coffee order_2 = new ChocoChipAddOn(new JavaChipAddOn(new Expresso()));
+Console.WriteLine(order_2.getPrice());
 
 
 
