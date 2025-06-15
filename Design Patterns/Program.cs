@@ -1,5 +1,6 @@
 ﻿using Design_Patterns.Adapter;
 using Design_Patterns.Builder;
+using Design_Patterns.Command;
 using Design_Patterns.Decorator;
 using Design_Patterns.Factory;
 using Design_Patterns.Strategy;
@@ -87,9 +88,22 @@ Console.WriteLine(order_2.getPrice());
 
 // Adapter Pattern Example
 
+/*
 PaymentGateway razorPay = new RazorPayPaymentGateway();
 razorPay.pay("101", 100.99);
+*/
 
+//Command Pattern Example
+
+Light light = new ();
+LightOnCommand lightOnCommand = new (light);
+LightOffCommand lightOffCommand = new (light);
+
+Remote remote = new Remote();
+remote.SetCommand(lightOnCommand);
+remote.PressButton();
+remote.SetCommand(lightOffCommand);
+remote.PressButton();
 
 
 
