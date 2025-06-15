@@ -1,4 +1,5 @@
-﻿using Design_Patterns.Builder;
+﻿using Design_Patterns.Adapter;
+using Design_Patterns.Builder;
 using Design_Patterns.Decorator;
 using Design_Patterns.Factory;
 using Design_Patterns.Strategy;
@@ -73,6 +74,7 @@ student.getDetails();
 
 // Decorator Pattern Example
 
+/*
 // Order 1: Black coffee with WhippedCream
 
 Coffee order_1 = new WhippedCreamAddOn(new BlackCoffee());
@@ -81,7 +83,12 @@ Console.WriteLine(order_1.getPrice());
 // Order 2: Expresso with java and chocochip
 Coffee order_2 = new ChocoChipAddOn(new JavaChipAddOn(new Expresso()));
 Console.WriteLine(order_2.getPrice());
+*/
 
+// Adapter Pattern Example
+
+PaymentGateway razorPay = new RazorPayPaymentGateway();
+razorPay.pay("101", 100.99);
 
 
 
