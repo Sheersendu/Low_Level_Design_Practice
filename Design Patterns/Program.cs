@@ -6,6 +6,7 @@ using Design_Patterns.Factory;
 using Design_Patterns.Strategy;
 using Design_Patterns.Observer;
 using Design_Patterns.Singleton;
+using Design_Patterns.State;
 
 // Strategy Pattern Example
 /*
@@ -95,6 +96,7 @@ razorPay.pay("101", 100.99);
 
 //Command Pattern Example
 
+/*
 Light light = new ();
 LightOnCommand lightOnCommand = new (light);
 LightOffCommand lightOffCommand = new (light);
@@ -104,6 +106,16 @@ remote.SetCommand(lightOnCommand);
 remote.PressButton();
 remote.SetCommand(lightOffCommand);
 remote.PressButton();
+*/
+
+// State Pattern Example
+ATMMachine atmMachine = new ATMMachine();
+IAtmState cardInsertedState = new CardInsertedState();
+atmMachine.SetState(cardInsertedState);
+atmMachine.Process();
+IAtmState pinVerificationState = new PinVerificationState();
+atmMachine.SetState(pinVerificationState);
+atmMachine.Process();
 
 
 
