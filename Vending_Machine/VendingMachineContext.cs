@@ -15,13 +15,14 @@ public class VendingMachineContext
 	public VendingMachineContext()
 	{
 		_inventory = new Inventory(3);
-		_currentState = new IdleState();
 		_coinList = new ConcurrentDictionary<Coin, int>();
 		_noteList = new ConcurrentDictionary<Note, int>();
+		_currentState = new IdleState(this);
 	}
 
 	public void UpdateCoinList()
 	{
+		_coinList.TryAdd(Coin.One, 10);
 		_coinList.TryAdd(Coin.Five, 10);
 		_coinList.TryAdd(Coin.Ten, 10);
 	}
@@ -39,6 +40,11 @@ public class VendingMachineContext
 		return _inventory;
 	}
 
+	public void SetDefaultState()
+	{
+		_currentState = new IdleState(this);
+	}
+	
 	public void SetState(IState state)
 	{
 		_currentState = state;
@@ -47,5 +53,37 @@ public class VendingMachineContext
 	public IState GetCurrentState()
 	{
 		return _currentState;
+	}
+	
+	public bool ItemInStock(string itemName, int quantity)
+	{
+		return _inventory.HasItem(itemName, quantity);
+	}
+
+	public List<string> GetAllItems()
+	{
+		return _inventory.GetAllItems();
+	}
+
+	public bool AddCoin(Coin coin, int quantity)
+	{
+		_coinList.AddOrUpdate(coin, 0, (key, count) => count + quantity);
+		return true;
+	}
+	
+	public bool AddNote(Note note, int quantity)
+	{
+		_noteList.AddOrUpdate(note, 0, (key, count) => count + quantity);
+		return true;
+	}
+
+	public List<Coin> GetCoinList()
+	{
+		return _coinList.Keys.ToList();
+	}
+	
+	public List<Note> GetNoteList()
+	{
+		return _noteList.Keys.ToList();
 	}
 }

@@ -4,13 +4,13 @@ namespace Vending_Machine.Utilities;
 
 public class Inventory
 {
-	private readonly ConcurrentDictionary<Item, int> _inventory;
+	private readonly ConcurrentDictionary<string, int> _inventory;
 	private readonly int _totalItems;
 	
 	public Inventory(int totalItems)
 	{
 		_totalItems = totalItems;
-		_inventory = new ConcurrentDictionary<Item, int>();
+		_inventory = new ConcurrentDictionary<string, int>();
 	}
 
 	public bool RestockItem(Item item, int quantity)
@@ -21,12 +21,17 @@ public class Inventory
 			return false;
 		}
 		
-		_inventory.AddOrUpdate(item, quantity, (key, oldValue) => oldValue + quantity);
+		_inventory.AddOrUpdate(item.Name, quantity, (key, oldValue) => oldValue + quantity);
 		return true;
 	}
 
-	public bool HasItem(Item item)
+	public bool HasItem(string itemName, int quantity)
 	{
-		return _inventory.ContainsKey(item) && (_inventory.GetValueOrDefault(item, 0) > 0);
+		return _inventory.ContainsKey(itemName) && (_inventory.GetValueOrDefault(itemName, 0) >= quantity);
+	}
+
+	public List<string> GetAllItems()
+	{
+		return _inventory.Keys.ToList();
 	}
 }
