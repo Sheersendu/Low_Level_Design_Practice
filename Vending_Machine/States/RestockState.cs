@@ -3,13 +3,13 @@ using Vending_Machine.Utilities;
 
 namespace Design_Patterns.Strategy;
 
-public class SelectProductState : IState
+public class RestockState : IState
 {
 	private readonly VendingMachineContext _context;
-	public SelectProductState(VendingMachineContext context)
+
+	public RestockState(VendingMachineContext vendingMachineContext)
 	{
-		Console.WriteLine("-------------------- Select Product --------------------\n\n");
-		_context = context;
+		_context = vendingMachineContext;
 	}
 	
 	public bool Process()
@@ -29,17 +29,11 @@ public class SelectProductState : IState
 		Console.WriteLine("Input quantity:\n");
 		var inputQuantity = Console.ReadLine();
 		int.TryParse(inputQuantity, out var quantity);
-
-		if (_context.ItemInStock(selectedProduct, quantity))
-		{
-			Item item = _context.GetItem(selectedProduct);
-			_context.SetState(new PaymentState(_context, item, quantity));	
-		}
-		else
-		{
-			return false;
-		}
-
-		return true;
+		
+		Item item = _context.GetItem(selectedProduct);
+		_context.RestockItem(item, quantity);
+		_context.GetInventory().ListInventory();
+		
+		return false;
 	}
 }

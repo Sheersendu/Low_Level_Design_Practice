@@ -65,6 +65,21 @@ public class VendingMachineContext
 		return _inventory.GetAllItems();
 	}
 
+	public Item GetItem(string itemName)
+	{
+		return _inventory.GetItem(itemName);
+	}
+
+	public bool RemoveItem(Item item, int quantity)
+	{
+		return _inventory.RemoveItem(item, quantity);
+	}
+
+	public bool RestockItem(Item item, int quantity)
+	{
+		return _inventory.RestockItem(item, quantity);
+	}
+	
 	public bool AddCoin(Coin coin, int quantity)
 	{
 		_coinList.AddOrUpdate(coin, 0, (key, count) => count + quantity);
@@ -74,6 +89,18 @@ public class VendingMachineContext
 	public bool AddNote(Note note, int quantity)
 	{
 		_noteList.AddOrUpdate(note, 0, (key, count) => count + quantity);
+		return true;
+	}
+	
+	public bool RemoveCoin(Coin coin, int quantity)
+	{
+		_coinList.AddOrUpdate(coin, 0, (key, count) => count - quantity);
+		return true;
+	}
+	
+	public bool RemoveNote(Note note, int quantity)
+	{
+		_noteList.AddOrUpdate(note, 0, (key, count) => count - quantity);
 		return true;
 	}
 

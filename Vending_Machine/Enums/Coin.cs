@@ -2,7 +2,7 @@
 
 public enum Coin
 {
-	One,
-	Five,
-	Ten
+	One = 1,
+	Five = 5,
+	Ten = 10,
 }

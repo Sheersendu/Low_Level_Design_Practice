@@ -1,4 +1,5 @@
-﻿using Vending_Machine.Utilities;
+﻿using Design_Patterns.Strategy;
+using Vending_Machine.Utilities;
 
 namespace Vending_Machine;
 
@@ -17,25 +18,32 @@ public class VendingMachine
 	
 	public void Init()
 	{
-		_vendingMachineContext.GetCurrentState();
-		bool continueFlow = false;
-		Console.WriteLine("Please choose operation:\n1. Choose Product\n2. Restock Item\n");
-		var operation = Console.ReadLine();
-		if (int.TryParse(operation, out int number) && number < 3)
+		while (true)
 		{
-			continueFlow = true;
-		}
-		else
-		{
-			Console.WriteLine("Invalid input. Please enter a valid integer.");
-		}
+			bool continueFlow = false;
+			Console.WriteLine("Please choose operation:\n1. Choose Product\n2. Restock Item\n");
+			var operation = Console.ReadLine();
+			if (int.TryParse(operation, out int number) && number < 3)
+			{
+				continueFlow = true;
+			}
+			else
+			{
+				Console.WriteLine("Invalid input. Please enter a valid integer.");
+			}
 
-		while (continueFlow)
-		{
-			continueFlow = _vendingMachineContext.GetCurrentState().Process();
+			if (number == 2)
+			{
+				_vendingMachineContext.SetState(new RestockState(_vendingMachineContext));
+			}
+
+			while (continueFlow)
+			{
+				continueFlow = _vendingMachineContext.GetCurrentState().Process();
+			}
+
+			_vendingMachineContext.SetDefaultState();
 		}
-		
-		_vendingMachineContext.SetDefaultState();
 	}
 
 	public void RestockItem(Item item, int quantity)
