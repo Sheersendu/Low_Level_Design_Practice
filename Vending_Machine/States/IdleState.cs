@@ -4,14 +4,16 @@ namespace Design_Patterns.Strategy;
 
 public class IdleState : IState
 {
-	public IdleState()
+	private readonly VendingMachineContext _context;
+	public IdleState(VendingMachineContext context)
 	{
 		Console.WriteLine("-------------------- Welcome to Vending Machine --------------------\n\n");
+		_context = context;
 	}
 	
-	public bool Process(VendingMachineContext context)
+	public bool Process()
 	{
-		context.SetState(new SelectProductState());
+		_context.SetState(new SelectProductState(_context));
 		return true;
 	}
 }

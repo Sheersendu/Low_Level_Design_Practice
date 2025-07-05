@@ -4,5 +4,5 @@ namespace Design_Patterns.Strategy;
 
 public interface IState
 {
-	bool Process(VendingMachineContext context);
+	bool Process();
 }
