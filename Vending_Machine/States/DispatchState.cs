@@ -21,8 +21,8 @@ public class DispatchState : IState
 	public bool Process()
 	{
 		_context.RemoveItem(_item, _quantity);
-		Console.WriteLine($"{_item.Name} Dispatched!");
-		Console.WriteLine($"Change to be returned: {_changeAmount}");
+		Console.WriteLine($"{_quantity} X {_item.Name} Dispatched!");
+		Console.WriteLine($"Change returned: {_changeAmount}");
 		Console.WriteLine("\n\n");
 		// _context.SetState(new IdleState(_context));
 		return false;
