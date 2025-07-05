@@ -2,5 +2,6 @@
 
 public interface IPaymentStrategy
 {
-	bool ProcessPayment(List<(Enum payment, int count)> payments, VendingMachineContext context);
+	void ProcessPayment(List<(Enum payment, int count)> payments);
+	bool ProcessChange(int changeAmount);
 }

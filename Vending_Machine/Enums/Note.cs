@@ -2,8 +2,8 @@
 
 public enum Note
 {
-	Ten,
-	Twenty,
-	Fifty,
-	Hundred
+	Ten = 10,
+	Twenty = 20,
+	Fifty = 50,
+	Hundred = 100
 }

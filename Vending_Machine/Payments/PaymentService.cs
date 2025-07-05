@@ -9,8 +9,8 @@ public class PaymentService
 	
 	public PaymentService(VendingMachineContext context)
 	{
-		_paymentStrategy = new CoinPaymentStrategy();
 		_context = context;
+		_paymentStrategy = new CoinPaymentStrategy(_context);
 	}
 
 	public void SetPaymentStrategy(IPaymentStrategy paymentStrategy)
@@ -18,29 +18,28 @@ public class PaymentService
 		_paymentStrategy = paymentStrategy;
 	}
 
-	public bool ProcessPayment(List<(Enum paymentType, int count)> payments, double totalAmountToBePaid)
+	public int ProcessPayment(List<(Enum paymentType, int count)> payments, double totalAmountToBePaid)
 	{
 		double amountPaid = 0;
-		double returnChange;
 		totalAmountToBePaid = Math.Ceiling(totalAmountToBePaid);
 		foreach (var (payment, typeCount) in payments)
 		{
-			amountPaid += (GetValue(payment) * typeCount);
+			amountPaid += GetValue(payment) * typeCount;
 		}
 
 		if (totalAmountToBePaid > amountPaid)
 		{
 			Console.WriteLine("Payment failed! Insufficient amount paid!");
-			return false;
+			return -1;
 		}
-		_paymentStrategy.ProcessPayment(payments, _context);
-		returnChange = totalAmountToBePaid - amountPaid;
-		if (returnChange > 0)
+		_paymentStrategy.ProcessPayment(payments);
+		var changeAmount = (int)(amountPaid - totalAmountToBePaid);
+		if (changeAmount > 0)
 		{
-			
+			_paymentStrategy.ProcessChange(changeAmount);
 		}
 
-		return true;
+		return changeAmount;
 	}
 
 	private double GetValue(Enum paymentType)
