@@ -37,7 +37,7 @@ class ParkingSpot
 	{
 		lock (this)
 		{
-			if !(_isAvailable)
+			if (!_isAvailable)
 			{
 				Console.WriteLine("Spot is already reserved!");
 			}
@@ -126,6 +126,22 @@ class ParkingLot
 			return parkingSpots.Dequeue();
 		}
 	}
+
+	public void DisplayAvailableParking(VehicleType type)
+	{
+		lock (_lock)
+		{
+			Console.WriteLine($"------------Available slots for {type}--------------");
+			foreach (Floor floor in floorList)
+			{
+				var availableSpots = floor.GetAvailableSpots(type);
+				foreach (ParkingSpot spot in availableSpots)
+				{
+					Console.WriteLine($"Floor: {floor._floorNumber} - Spot: {spot._spotNumber}");
+				}
+			}
+		}
+	}
 }
 
 class Program
@@ -133,28 +149,36 @@ class Program
 	public static void Main(string[] args)
 	{
 		ParkingLot parkingLot = new(2);
-		for(int index = 0; index < 6; index++)
-		{
-			Car car = new($"C-{index + 1}");
-			ParkingSpot? spot = parkingLot.GetParkingSpot(VehicleType.CAR);
-			if (spot != null)
-			{
-				spot.Reserve(car);
-				Console.WriteLine($"A vehicle of type '{spot._vehicleType}' with licence number: '{spot._parkedVehicle.licenceNumber}' is parked at spot no: '{spot._spotNumber}'");
-				// spot.UnReserve();
-			}
-		}
+		// for(int index = 0; index < 6; index++)
+		// {
+		// 	Car car = new($"C-{index + 1}");
+		// 	ParkingSpot? spot = parkingLot.GetParkingSpot(VehicleType.CAR);
+		// 	if (spot != null)
+		// 	{
+		// 		spot.Reserve(car);
+		// 		Console.WriteLine($"A vehicle of type '{spot._vehicleType}' with licence number: '{spot._parkedVehicle.licenceNumber}' is parked at spot no: '{spot._spotNumber}'");
+		// 		// spot.UnReserve();
+		// 	}
+		// }
+		//
+		// for(int index = 0; index < 3; index++)
+		// {
+		// 	Bike bike = new($"B-{index + 1}");
+		// 	ParkingSpot? spot = parkingLot.GetParkingSpot(VehicleType.BIKE);
+		// 	if (spot != null)
+		// 	{
+		// 		spot.Reserve(bike);
+		// 		Console.WriteLine($"A vehicle of type '{spot._vehicleType}' with licence number: '{spot._parkedVehicle.licenceNumber}' is parked at spot no: '{spot._spotNumber}'");
+		// 	}
+		// }
 		
-		for(int index = 0; index < 3; index++)
-		{
-			Bike bike = new($"B-{index + 1}");
-			ParkingSpot? spot = parkingLot.GetParkingSpot(VehicleType.BIKE);
-			if (spot != null)
-			{
-				spot.Reserve(bike);
-				Console.WriteLine($"A vehicle of type '{spot._vehicleType}' with licence number: '{spot._parkedVehicle.licenceNumber}' is parked at spot no: '{spot._spotNumber}'");
-			}
-		}
+		// Test DisplayAvailableParking functionality
+		Car car = new("C-01");
+		ParkingSpot spot = parkingLot.GetParkingSpot(VehicleType.CAR);
+		spot.Reserve(car);
+		parkingLot.DisplayAvailableParking(VehicleType.CAR);
+		spot?.UnReserve();
+		parkingLot.DisplayAvailableParking(VehicleType.CAR);
 	}
 }
 
