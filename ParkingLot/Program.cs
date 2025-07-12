@@ -37,8 +37,15 @@ class ParkingSpot
 	{
 		lock (this)
 		{
-			_isAvailable = false;
-			_parkedVehicle = currentVehicle;
+			if !(_isAvailable)
+			{
+				Console.WriteLine("Spot is already reserved!");
+			}
+			else
+			{
+				_isAvailable = false;
+				_parkedVehicle = currentVehicle;
+			}
 		}
 	}
 
