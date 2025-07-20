@@ -79,5 +79,3 @@ By using flags like `IsProcessed` and `IsDelivered`.
 * Skipped `IFileUploader`, `IFileValidator` as non-core in 30-min solution — valid tradeoff.
 
 ---
-
-If you'd like, I can generate a visual **architecture diagram**, flowchart, or single-slide summary based on all this. Would that help you in the mock or real interview?
