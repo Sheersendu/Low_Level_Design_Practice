@@ -99,7 +99,7 @@ Store in DB:
     Post max retry - Kafka DLQ + MessageStatus table (DB)
     Observability - Store message metadata in DB for audit
 
-Table: NotificationDeliveryStatus
+#### Table: NotificationDeliveryStatus
 
 | Column Name         | Type          | Description                                                                  |
 | ------------------- | ------------- | ---------------------------------------------------------------------------- |
@@ -117,3 +117,39 @@ Table: NotificationDeliveryStatus
 | `created_at`        | TIMESTAMP     | Created timestamp                                                            |
 | `updated_at`        | TIMESTAMP     | Last modified timestamp                                                      |
 
+#### APIS:
+POST /api/v1/notifications
+
+Used by other services to trigger notifications.
+````
+POST /api/v1/notifications
+Content-Type: application/json
+
+{
+  "messageId": "order-1234-email",
+  "userId": "user-5678",
+  "channel": "EMAIL",
+  "templateId": "ORDER_CONFIRMATION",
+  "payload": {
+    "orderId": "ORD-7890",
+    "userName": "Sheersendu",
+    "amount": 499.99
+    },
+  "retryable": true
+}
+````
+JWT / mTLS-based service-to-service auth recommended.
+
+To check delivery status of a specific message:
+````
+GET /api/v1/notifications/status/:messageId
+
+{
+  "messageId": "order-1234-email",
+  "status": "SUCCESS",
+  "channel": "EMAIL",
+  "retryCount": 1,
+  "lastAttemptedAt": "2025-07-19T08:35:10Z",
+  "isDelivered": true
+}
+````
