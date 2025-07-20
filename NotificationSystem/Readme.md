@@ -79,3 +79,41 @@ By using flags like `IsProcessed` and `IsDelivered`.
 * Skipped `IFileUploader`, `IFileValidator` as non-core in 30-min solution — valid tradeoff.
 
 ---
+
+Separate Message Delivery Status Table (More Control)
+
+Store in DB:
+
+| messageId | status     | lastAttempted | retryCount | errorCode | userId | channel |
+|-----------|------------|---------------|------------|-----------|--------|---------|
+| msg123    | FAILED     | 2024-07-19     |     3      | TIMEOUT   | u001   | EMAIL   |
+
+    This allows richer observability, analytics, and recovery via dashboard/UI.
+
+    You can combine DLQ + DB tracking, where DLQ is for reprocessing and DB is for reporting.
+
+🛠️ Recommendation for Your Use Case
+
+    Idempotency	- Redis with fixed TTL (e.g., 24–48 hrs)
+    Retries	- Kafka retry topic with exponential backoff
+    Post max retry - Kafka DLQ + MessageStatus table (DB)
+    Observability - Store message metadata in DB for audit
+
+Table: NotificationDeliveryStatus
+
+| Column Name         | Type          | Description                                                                  |
+| ------------------- | ------------- | ---------------------------------------------------------------------------- |
+| `id`                | UUID / BIGINT | Primary key for the status entry                                             |
+| `message_id`        | VARCHAR(100)  | Unique ID for the notification message (used for idempotency)                |
+| `user_id`           | UUID / BIGINT | Recipient's user ID                                                          |
+| `channel`           | ENUM          | `EMAIL`, `SMS`, `PUSH`, etc.                                                 |
+| `status`            | ENUM          | `PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`, `DLQ`                         |
+| `retry_count`       | INT           | How many retry attempts have been made                                       |
+| `last_attempted_at` | TIMESTAMP     | When the message was last attempted                                          |
+| `next_retry_at`     | TIMESTAMP     | Scheduled time for the next retry (set via backoff strategy)                 |
+| `error_reason`      | VARCHAR(255)  | Optional error code or description (timeout, bounced, rate limit, etc.)      |
+| `is_processed`      | BOOLEAN       | Prevent duplicate processing; set `true` when picked up                      |
+| `is_delivered`      | BOOLEAN       | Final delivery status – `true` means it was received by channel successfully |
+| `created_at`        | TIMESTAMP     | Created timestamp                                                            |
+| `updated_at`        | TIMESTAMP     | Last modified timestamp                                                      |
+
