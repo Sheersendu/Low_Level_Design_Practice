@@ -242,6 +242,7 @@ class BookMyShowService
 	public Booking Book(ImmutableList<Seat> selectedSeats)
 	{
 		Booking booking = new (selectedSeats);
+		booking.GetPaymentStatus();
 		return booking;
 	}
 	
