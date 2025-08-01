@@ -38,14 +38,21 @@ class Seat(string seatNo, SeatType type, double price) : BaseClass
 	{
 		lock (_status)
 		{
+			if (!IsAvailable)
+			{
+				Console.WriteLine("Seat already booked!");
+				return;
+			}
 			IsAvailable = false;
 		}
 	}
 }
 
-class Screen(string name, Movie movie) : BaseClass
+class Show(Screen currentScreen, DateTime startTime, DateTime endTime, Movie movie) : BaseClass
 {
-	public string Name { get; set; } = name;
+	public Screen screen { get; set; } = currentScreen;
+	public DateTime StartTime { get; set; } = startTime;
+	public DateTime EndTime { get; set; } = endTime;
 	private ConcurrentDictionary<Guid, Seat> _seatList = new();
 	public Movie Movie { get; set; } = movie;
 
@@ -71,6 +78,48 @@ class Screen(string name, Movie movie) : BaseClass
 	}
 }
 
+class Screen(string name) : BaseClass
+{
+	public string Name { get; set; } = name;
+	private ConcurrentDictionary<Guid, Show> _showList = new();
+	private readonly object _screenLock = new();
+
+	public Show AddShow(DateTime startTime, DateTime endTime, Movie movie)
+	{
+		lock (_screenLock)
+		{
+			Show newShow = new(this, startTime, endTime, movie);
+			_showList.TryAdd(newShow.Id, newShow);
+			return newShow;
+		}
+	}
+	
+	public void RemoveShow(Guid showId)
+	{
+		lock (_screenLock)
+		{
+			_showList.Remove(showId, out _);
+		}
+	}
+
+	public List<Show> GetAllShow()
+	{
+		lock (_screenLock)
+		{
+			return _showList.Values.ToList();
+		}
+	}
+
+	public void DisplayShows()
+	{
+		foreach (var show in _showList.Values.OrderBy(show => show.StartTime).ToList())
+		{
+			Console.WriteLine($"Playing {show.Movie.Name} at {show.StartTime:HH:mm} - {show.EndTime:HH:mm}");
+		}
+		Console.WriteLine("---------------------------------------");
+	}
+}
+
 class Theater(string name) : BaseClass
 {
 	public string Name { get; set; } = name;
@@ -93,10 +142,13 @@ class Theater(string name) : BaseClass
 
 	public void Display()
 	{
-		Console.WriteLine($"---------------{Name}---------------");
+		Console.WriteLine($"---------------------------------------");
+		Console.WriteLine($"\t\t{Name}");
+		Console.WriteLine($"---------------------------------------");
 		foreach (var screen in _screenList.Values)
 		{
-			Console.WriteLine($"Now '{screen.Movie.Name}' in cinemas at '{screen.Name}'");
+			Console.WriteLine($"\t'{screen.Name}'");
+			screen.DisplayShows();
 		}
 	}
 }
@@ -122,29 +174,35 @@ class Payment : BaseClass
 
 class Booking : BaseClass
 {
+	public Guid UserId { get; }
 	private string BookingId { get; init; } = new Random().Next().ToString();
-	private readonly ImmutableList<Seat> _selectedSeats;
+	public ImmutableList<Seat> SelectedSeats { get; }
 	private readonly Payment _payment = new ();
-	private double _billAmount = 0;
+	private double _billAmount;
+	private object _booking = new ();
 
-	public Booking(ImmutableList<Seat> selectedSeats)
+	public Booking(Guid userId, ImmutableList<Seat> selectedSeats)
 	{
+		UserId = userId;
 		_payment.SetStatus(PaymentStatus.Success);
-		_selectedSeats = selectedSeats;
+		SelectedSeats = selectedSeats;
 	}
 
 	private void CalculateTotalAmount()
 	{
-		foreach (var seat in _selectedSeats)
+		lock (_booking)
 		{
-			seat.Book();
-			_billAmount += seat.Price;
-		}
+			foreach (var seat in SelectedSeats)
+			{
+				seat.Book();
+				_billAmount += seat.Price;
+			}
 
-		_billAmount = Math.Round(_billAmount, 2);
+			_billAmount = Math.Round(_billAmount, 2);
+		}
 	}
 	
-	public void GetPaymentStatus()
+	public void MakePayment()
 	{
 		CalculateTotalAmount();
 		Console.WriteLine($"Payment for Booking Id: {BookingId} for {_billAmount} was: {_payment.Status.ToString()}");
@@ -183,24 +241,36 @@ class BookMyShowService
 		return theater.Id;
 	}
 
-	public void AddScreen(Guid theaterId, Guid movieId)
+	public Screen AddScreen(Guid theaterId, int screenNumber)
+	{
+		_theaters.TryGetValue(theaterId, out var theater);
+		if (theater is null)
+		{
+			return null;
+		}
+		
+		Screen screen = new ($"Screen No: {screenNumber}");
+		theater.AddScreen(screen);
+		return screen;
+	}
+
+	public Show AddShowToScreen(Screen screen, Guid movieId)
 	{
 		_movies.TryGetValue(movieId, out var movie);
-		_theaters.TryGetValue(theaterId, out var theater);
-		if (movie is null || theater is null)
+		if (movie is null)
 		{
-			return;
+			return null;
 		}
 		Seat s1 = new("A1", SeatType.Gold, 150.12);
 		Seat s2 = new("B1", SeatType.Silver, 100.23);
 		Seat s3 = new("A2", SeatType.Gold, 150.12);
 		Seat s4 = new("B2", SeatType.Silver, 100.23);
-		Screen screen = new ($"Screen No: {new Random().Next()%10+1}", movie);
-		screen.AddSeat(s1);
-		screen.AddSeat(s2);
-		screen.AddSeat(s3);
-		screen.AddSeat(s4);
-		theater.AddScreen(screen);
+		Show show = screen.AddShow(new DateTime(2023, 10, 5, 14, 30, 0 ), new DateTime(2023, 10, 5, 17, 0, 0 ), movie);
+		show.AddSeat(s1);
+		show.AddSeat(s2);
+		show.AddSeat(s3);
+		show.AddSeat(s4);
+		return show;
 	}
 
 	public void GetMovieDetails(Guid movieId)
@@ -234,15 +304,15 @@ class BookMyShowService
 		return theater.GetAllScreen();
 	}
 
-	public List<Seat> GetAvailableSeats(Screen screen, SeatType type)
+	public List<Seat> GetAvailableSeats(Show show, SeatType type)
 	{
-		return screen.GetAvailableSeatList(type);
+		return show.GetAvailableSeatList(type);
 	}
 
-	public Booking Book(ImmutableList<Seat> selectedSeats)
+	public Booking Book(Guid userId, ImmutableList<Seat> selectedSeats)
 	{
-		Booking booking = new (selectedSeats);
-		booking.GetPaymentStatus();
+		Booking booking = new (userId, selectedSeats);
+		booking.MakePayment();
 		return booking;
 	}
 	
@@ -252,77 +322,33 @@ class BookMyShow
 {
 	public static void Main(string[] args)
 	{
-		// Movie movie1 = new("Movie 1", "Description 1", 120);
-		// Movie movie2 = new("Movie 2", "Description 2", 105);
-		// Seat s1 = new("A1", SeatType.Gold, 150.12);
-		// Seat s2 = new("B1", SeatType.Silver, 100.23);
-		// Seat s3 = new("A2", SeatType.Gold, 150.12);
-		// Screen screen1 = new Screen("Screen 1", movie1);
-		// screen1.AddSeat(s1);
-		// screen1.AddSeat(s2);
-		// screen1.AddSeat(s3);
-		// Screen screen2 = new Screen("Screen 2", movie2);
-		// screen2.AddSeat(s1);
-		// screen2.AddSeat(s2);
-		// screen2.AddSeat(s3);
-		
-		#region Remove Seat
-
-		// screen.RemoveSeat(s3.Id);
-		// foreach (var seat in screen.GetAvailableSeatList(SeatType.Gold))
-		// {
-		// 	Console.WriteLine($"{seat.SeatNo} - {seat.Type} - {seat.Price} - {seat.IsAvailable}");
-		// }
-
-		#endregion
-
-		#region Check booking
-
-		// s1.Book();
-		// foreach (var seat in screen.GetAvailableSeatList(SeatType.Gold))
-		// {
-		// 	Console.WriteLine($"{seat.SeatNo} - {seat.Type} - {seat.Price} - {seat.IsAvailable}");
-		// }
-
-		#endregion
-
-		#region Check Get Seat
-
-		// Console.WriteLine(screen.GetSeat(s1.Id).SeatNo);
-
-		#endregion
-
-		// Theater theater = new Theater("Theater 1");
-		// theater.AddScreen(screen1);
-		// theater.AddScreen(screen2);
-		// theater.Display();
-		
-		// foreach (var seat in screen1.GetAvailableSeatList(SeatType.Gold))
-		// {
-		// 	Console.WriteLine($"{seat.SeatNo} - {seat.Type} - {seat.Price} - {seat.IsAvailable}");
-		// }
-		// var selectedSeats = ImmutableList.Create<Seat>(s1, s2);
-		// Booking booking = new Booking(selectedSeats);
-		// booking.GetPaymentStatus();
-
+		User user = new("User Name", "name@email.com"); 
 		BookMyShowService bookMyShowService = BookMyShowService.GetInstance();
 		var movieId1 = bookMyShowService.AddMovie("Movie 1", "Description 1", 120);
 		var movieId2 = bookMyShowService.AddMovie("Movie 2", "Description 2", 105);
 		var theaterId = bookMyShowService.AddTheater("Theater 1");
-		bookMyShowService.AddScreen(theaterId, movieId1);
-		bookMyShowService.AddScreen(theaterId, movieId2);
+		var screen1 = bookMyShowService.AddScreen(theaterId, 1);
+		var screen2 = bookMyShowService.AddScreen(theaterId, 2);
+		bookMyShowService.AddShowToScreen(screen1, movieId1);
+		bookMyShowService.AddShowToScreen(screen1, movieId2);
+		bookMyShowService.AddShowToScreen(screen2, movieId1);
+		bookMyShowService.AddShowToScreen(screen2, movieId2);
 		
 		// Get Movie Details
 		// bookMyShowService.GetMovieDetails(movieId1);
 		
 		// Display all Movies
-		// bookMyShowService.DisplayAllMovies(theaterId);
+		bookMyShowService.DisplayAllMovies(theaterId);
 		
 		// Get All screens
 		var allScreens = bookMyShowService.GetAllScreens(theaterId);
 		
+		// Get All shows for a screen
+		var selectedScreen = allScreens[0];
+		var allShows = selectedScreen.GetAllShow();
+		
 		// Get All seats
-		var seats = bookMyShowService.GetAvailableSeats(allScreens[0], SeatType.Gold);
+		var seats = bookMyShowService.GetAvailableSeats(allShows[0], SeatType.Gold);
 		foreach (var seat in seats)
 		{
 			Console.WriteLine($"{seat.SeatNo}");
@@ -330,9 +356,10 @@ class BookMyShow
 		
 		// Book
 		var selectedSeats = ImmutableList.Create<Seat>(seats[0]);
-		bookMyShowService.Book(selectedSeats);
+		var booking = bookMyShowService.Book(user.Id, selectedSeats);
+		Console.WriteLine($"{booking.UserId} has booked Seats: {booking.SelectedSeats[0].SeatNo}");
 		
-		foreach (var seat in bookMyShowService.GetAvailableSeats(allScreens[0], SeatType.Gold))
+		foreach (var seat in bookMyShowService.GetAvailableSeats(allShows[0], SeatType.Gold))
 		{
 			Console.WriteLine($"{seat.SeatNo}");
 		}
