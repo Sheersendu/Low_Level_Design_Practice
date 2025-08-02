@@ -9,11 +9,13 @@ class Player (string name, Piece playerPiece)
 	public Piece piece { get; init; } = playerPiece;
 }
 
-class Board
+class Board(int boardSize)
 {
-	private string[,] _board = new string[3, 3];
-	private int[] _rowValues = new int[3];
-	private int[] _columnValues = new int[3];
+	private readonly string[,] _board = new string[boardSize, boardSize];
+	private readonly int[] _rowValues = new int[boardSize];
+	private readonly int[] _columnValues = new int[boardSize];
+	private int _leftDiagonal;
+	private int _rightDiagonal; 
 	private int _totalMoves;
 
 	public bool MakeMove(int rowIndex, int columnIndex, Player player)
@@ -26,11 +28,29 @@ class Board
 			{
 				_rowValues[rowIndex] += 1;
 				_columnValues[columnIndex] += 1;
+				if (rowIndex == columnIndex)
+				{
+					_leftDiagonal += 1;
+				}
+
+				if (rowIndex + columnIndex == boardSize-1)
+				{
+					_rightDiagonal += 1;
+				}
 			}
 			else
 			{
 				_rowValues[rowIndex] -= 1;
 				_columnValues[columnIndex] -= 1;
+				if (rowIndex == columnIndex)
+				{
+					_leftDiagonal -= 1;
+				}
+				
+				if (rowIndex + columnIndex == boardSize-1)
+				{
+					_rightDiagonal -= 1;
+				}
 			}
 
 			return true;
@@ -42,19 +62,19 @@ class Board
 
 	private bool IsValidIndex(int rowIndex, int columnIndex)
 	{
-		return (rowIndex >= 0 && rowIndex < 3 && columnIndex >= 0 && columnIndex < 3 && _board[rowIndex, columnIndex] is null);
+		return (rowIndex >= 0 && rowIndex < boardSize && columnIndex >= 0 && columnIndex < boardSize && _board[rowIndex, columnIndex] is null);
 	}
 	
 	public bool IfFull()
 	{
-		return _totalMoves == 9;
+		return _totalMoves == (boardSize*boardSize);
 	}
 	
 	public bool HasWinner()
 	{
 		foreach (int row in _rowValues)
 		{
-			if(row == 3 || row == -3)
+			if(row == boardSize || row == -boardSize)
 			{
 				return true;
 			}
@@ -62,28 +82,20 @@ class Board
 		
 		foreach (int column in _columnValues)
 		{
-			if(column == 3 || column == -3)
+			if(column == boardSize || column == -boardSize)
 			{
 				return true;
 			}
 		}
 
-		if (!(_board[1, 1] is null))
+		if (_leftDiagonal == boardSize || _leftDiagonal == -boardSize)
 		{
-			string current_piece = _board[1, 1];
-			
-			//left diagonal
-			if (!(_board[0, 0] is null) && !(_board[2, 2] is null) && _board[0, 0] == current_piece && _board[2, 2] == current_piece)
-			{
-				return true;
-			}
-			
-			//right diagonal
-			if (!(_board[0, 2] is null) && !(_board[2, 0] is null) && _board[0, 2] == current_piece && _board[2, 0] == current_piece)
-			{
-				return true;
-			}
-			
+			return true;
+		}
+		
+		if (_rightDiagonal == boardSize || _rightDiagonal == -boardSize)
+		{
+			return true;
 		}
 
 		return false;
@@ -91,21 +103,26 @@ class Board
 
 	public void PrintBoard()
 	{
-		for (int rowIndex = 0; rowIndex < 3; rowIndex++)
+		Console.WriteLine("------------");
+		for (int rowIndex = 0; rowIndex < boardSize; rowIndex++)
 		{
-			Console.WriteLine($"{_board[rowIndex, 0] ?? "N"} | {_board[rowIndex, 1] ?? "N"} | {_board[rowIndex, 2] ?? "N"}");
+			for(int columnIndex = 0; columnIndex < boardSize; columnIndex++)
+			{
+				Console.Write($" {_board[rowIndex, columnIndex] ?? "N"} |");
+			}
+			Console.WriteLine();
 		}
-		Console.WriteLine("-------------------");
+		Console.WriteLine("------------");
 	}
 
 }
 
-class Game(Player player_1, Player player_2)
+class Game(Player player_1, Player player_2, int boardSize)
 {
 	public Player player1 { get; init; } = player_1;
 	public Player player2 { get; init; } = player_2;
 	private Player current_player;
-	private Board _board = new();
+	private Board _board = new(boardSize);
 
 	public void Play()
 	{
@@ -138,6 +155,7 @@ class Game(Player player_1, Player player_2)
 
 	private bool MakeMove()
 	{
+		Console.WriteLine($"{current_player.Name}'s Turn:");
 		Console.WriteLine("Enter Row Index:");
 		if (int.TryParse(Console.ReadLine(), out var rowIndex))
 		{
@@ -158,7 +176,7 @@ class TicTacToe
 	{
 		Player player1 = new Player("Player 1", Piece.X);
 		Player player2 = new Player("Player 2", Piece.O);
-		Game game = new(player1, player2);
+		Game game = new(player1, player2, 4);
 		game.Play();
 	}
 }
