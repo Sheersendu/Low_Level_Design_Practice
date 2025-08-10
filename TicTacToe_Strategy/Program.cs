@@ -206,8 +206,10 @@ class TicTacToe
 	public static void Main(string[] args)
 	{
 		Player humanPlayer = new HumanPlayer("Player 1", Piece.X, new HumanPlayingStrategy());
-		Player aiPlayer = new AIPlayer(Piece.O, new EasyPlayingStrategy());
-		Game game = new Game(3, humanPlayer, aiPlayer);
+		Player aiPlayer1 = new AIPlayer(Piece.O, new EasyPlayingStrategy());
+		Player aiPlayer2 = new AIPlayer(Piece.X, new EasyPlayingStrategy());
+		// Game game = new Game(3, humanPlayer, aiPlayer1);
+		Game game = new Game(3, aiPlayer2, aiPlayer1);
 		game.MakeMove();
 	}
 }
