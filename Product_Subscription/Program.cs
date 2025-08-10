@@ -69,3 +69,11 @@ class SubscriptionType : BaseClass
 	public string Name { get; set; }
 	public int Days { get; set; }
 }
+
+class ProductSubscription
+{
+	public static void Main(string[] args)
+	{
+		Console.WriteLine("Product subscribed!");
+	}
+}
