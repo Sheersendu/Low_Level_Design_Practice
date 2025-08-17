@@ -1,6 +1,21 @@
 ﻿enum Piece
 {
-	X = 1, O = -1
+	X, O
+}
+
+static class PieceExtension
+{
+	public static int GetValue(this Piece piece)
+	{
+		switch (piece)
+		{
+			case Piece.X:
+				return 1;
+			default:
+				return -1;
+		}
+	}
+	
 }
 
 interface IPlayingStrategy
@@ -85,17 +100,17 @@ class Board(int boardSize)
 		if (IsValidMove(rowIndex, columnIndex) && IsCellEmpty(rowIndex, columnIndex))
 		{
 			_board[rowIndex, columnIndex] = piece.ToString();
-			rowValues[rowIndex] += (int) piece;
-			columnValues[columnIndex] += (int) piece;
+			rowValues[rowIndex] += piece.GetValue();
+			columnValues[columnIndex] += piece.GetValue();
 			total_moves += 1;
 			if (rowIndex == columnIndex)
 			{
-				leftDiagonal += (int)piece;
+				leftDiagonal += piece.GetValue();
 			}
 
 			if (rowIndex + columnIndex == boardSize - 1)
 			{
-				rightDiagonal += (int)piece;
+				rightDiagonal += piece.GetValue();
 			}
 			return true;
 		}
