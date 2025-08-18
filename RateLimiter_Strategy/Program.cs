@@ -17,6 +17,7 @@ class UserState(int currentTokens, DateTime lastRefillTime)
 {
 	public int CurrentTokens { get; set; } = currentTokens;
 	public DateTime LastRefillTime { get; set; } = lastRefillTime;
+    public readonly Object Lock = new ();
 }
 
 interface IRateLimitingStrategy
@@ -26,11 +27,10 @@ interface IRateLimitingStrategy
 
 class TokeBucketStrategy : IRateLimitingStrategy
 {
-	private readonly Object _tokenBucketLock = new();
 
 	public bool Process(RateLimitConfig config, UserState state)
 	{
-		lock (_tokenBucketLock)
+		lock (state.Lock)
 		{
 			DateTime currentTime = DateTime.UtcNow;
 			var minutesElapsed = (int)(currentTime - state.LastRefillTime).TotalMinutes;
@@ -125,3 +125,10 @@ class RateLimitingDemo
 		}
 	}
 }
+
+#region Readme!!!
+// I kept the strategy stateless; per-user runtime state (tokens, refill timestamp) is stored separately.
+// Here, it’s an in-memory ConcurrentDictionary, but in production we will use Redis with TTL for resilience and scaling.
+// Each user has its own config and lock, so concurrent requests don’t block across users. The refill logic is time-based and tunable.
+// This makes the design extensible, thread-safe, and production-scalable.
+#endregion
